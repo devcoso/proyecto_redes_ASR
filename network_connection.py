@@ -1,7 +1,12 @@
+"""
+Módulo para manejar conexiones SSH a routers Cisco.
+"""
+
 from netmiko import ConnectHandler
 import time
 import threading
 from datetime import datetime
+
 
 class SSHRouterConnection:
     """
@@ -89,7 +94,7 @@ class SSHRouterConnection:
         time.sleep(2)
         return self.conectar()
     
-    def ejecutar_comando_show(self, comando):
+    def obtener_informacion(self, comando):
         """
         Ejecuta comandos de consulta (show commands)
         """
@@ -105,7 +110,7 @@ class SSHRouterConnection:
             print(f"Error ejecutando '{comando}' en {self.nombre}: {e}")
             return None
     
-    def ejecutar_comandos_config(self, comandos):
+    def configurar(self, comandos):
         """
         Ejecuta comandos de configuración
         comandos: lista de comandos o string único
@@ -126,64 +131,11 @@ class SSHRouterConnection:
             print(f"✗ Error en configuración de {self.nombre}: {e}")
             return False
     
-    def obtener_info_basica(self):
-        """Obtiene información básica del router"""
-        info = {
-            'hostname': self._extraer_hostname(),
-            'version': self.ejecutar_comando_show("show version"),
-            'interfaces': self.ejecutar_comando_show("show ip interface brief"),
-            'routing_table': self.ejecutar_comando_show("show ip route"),
-            'running_config': self.ejecutar_comando_show("show running-config")
-        }
-        return info
-    
-    def obtener_protocolos_routing(self):
-        """Obtiene información de protocolos de enrutamiento"""
-        protocolos = {}
-        
-        # OSPF
-        ospf = self.ejecutar_comando_show("show ip ospf")
-        if ospf and "Process ID" in ospf:
-            protocolos['ospf'] = {
-                'activo': True,
-                'info': ospf,
-                'neighbors': self.ejecutar_comando_show("show ip ospf neighbor")
-            }
-        
-        # EIGRP
-        eigrp = self.ejecutar_comando_show("show ip eigrp topology")
-        if eigrp and "IP-EIGRP" in eigrp:
-            protocolos['eigrp'] = {
-                'activo': True,
-                'info': eigrp,
-                'neighbors': self.ejecutar_comando_show("show ip eigrp neighbors")
-            }
-        
-        # RIP
-        rip = self.ejecutar_comando_show("show ip rip database")
-        if rip and "auto-summary" in rip:
-            protocolos['rip'] = {
-                'activo': True,
-                'info': rip
-            }
-        
-        return protocolos
-    
     def _verificar_y_reconectar(self):
         """Verifica conexión y reconecta si es necesario"""
         if not self.verificar_conexion():
             return self.reconectar()
         return True
-    
-    def _extraer_hostname(self):
-        """Extrae el hostname del router"""
-        try:
-            resultado = self.ejecutar_comando_show("show running-config | include hostname")
-            if resultado:
-                return resultado.split("hostname ")[1].strip()
-        except:
-            pass
-        return f"Router_{self.ip}"
     
     def _iniciar_keepalive(self):
         """Inicia el hilo de keepalive para mantener la conexión viva"""
@@ -208,16 +160,6 @@ class SSHRouterConnection:
                 if self.keepalive_activo:
                     print(f"Keepalive falló para {self.nombre}, intentando reconectar...")
                     self.reconectar()
-    
-    def obtener_estado(self):
-        """Retorna el estado actual de la conexión"""
-        return {
-            'nombre': self.nombre,
-            'ip': self.ip,
-            'conectado': self.conectado,
-            'ultimo_comando': self.ultimo_comando,
-            'keepalive_activo': self.keepalive_activo
-        }
     
     def __str__(self):
         estado = "Conectado" if self.conectado else "Desconectado"
@@ -258,4 +200,3 @@ class RouterManager:
         """Lista todos los routers y su estado"""
         for router in self.routers.values():
             print(router)
-
