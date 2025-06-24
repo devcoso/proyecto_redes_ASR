@@ -36,7 +36,7 @@ QUERY_COMMANDS = {
     "DHCP": "show ip dhcp binding",
     "Enrutamiento": "show ip protocols",
     "Interfaces": "show ip interface brief",
-    "NAT": "show ip nat translations",
+    "NAT": "show ip nat statistics",
     "QoS": "show policy-map interface",
     "SNMP": "show snmp",
 }
@@ -68,7 +68,9 @@ CONFIG_TEMPLATES = {
         "match ip dscp ef",
         "policy-map QOS_POLICY",
         "class VOICE",
-        "priority percent 30"
+        "priority percent 30",
+        "interface FastEthernet0/0",
+        "service-policy output QOS_POLICY"
     ],
     "Enrutamiento": [
         "router ospf 1",

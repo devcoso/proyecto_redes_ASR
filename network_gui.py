@@ -120,11 +120,10 @@ class NetworkTopologyGUI:
         config_buttons = [
             ("Configurar ACL", "ACL"),
             ("Configurar DHCP", "DHCP"),
+            ("Configurar Enrutamiento", "Enrutamiento"),
             ("Configurar NAT", "NAT"),
-            ("Configurar VLAN", "VLAN"),
-            ("Configurar SNMP", "SNMP"),
             ("Configurar QoS", "QoS"),
-            ("Configurar Enrutamiento", "Enrutamiento")
+            ("Configurar SNMP", "SNMP"),
         ]
         
         for text, config_type in config_buttons:
@@ -284,8 +283,8 @@ class NetworkTopologyGUI:
             if result:
                 self.add_result(result + "\n", "success")
             else:
-                if result.strip():
-                    self.add_result(result + "\n", "success")
+                if result is not None and str(result).strip():
+                    self.add_result(str(result) + "\n", "success")
                 else:
                     self.add_result("No se obtuvo información (vacío)\n", "info")
             
